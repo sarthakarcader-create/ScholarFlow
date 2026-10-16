@@ -54,7 +54,7 @@ router.get("/", requireLogin, async (req, res) => {
 
         res.json({
             success: true,
-            scholarships: scholarships
+            scholarships
         });
     } catch (error) {
         console.error("Fetch scholarships error:", error.message);
@@ -81,11 +81,16 @@ router.post("/", requireAdmin, async (req, res) => {
         amount === undefined ||
         !Number.isFinite(scholarshipAmount) ||
         scholarshipAmount <= 0 ||
-        (deadline !== null && deadline !== undefined &&
+        (
+            deadline !== null &&
+            deadline !== undefined &&
             deadline !== "" &&
-            (typeof deadline !== "string" ||
-             !/^\d{4}-\d{2}-\d{2}$/.test(deadline) ||
-             Number.isNaN(Date.parse(deadline))))
+            (
+                typeof deadline !== "string" ||
+                !/^\d{4}-\d{2}-\d{2}$/.test(deadline) ||
+                Number.isNaN(Date.parse(deadline))
+            )
+        )
     ) {
         return res.status(400).json({
             success: false,
@@ -139,11 +144,16 @@ router.put("/:id", requireAdmin, async (req, res) => {
         amount === undefined ||
         !Number.isFinite(scholarshipAmount) ||
         scholarshipAmount <= 0 ||
-        (deadline !== null && deadline !== undefined &&
+        (
+            deadline !== null &&
+            deadline !== undefined &&
             deadline !== "" &&
-            (typeof deadline !== "string" ||
-             !/^\d{4}-\d{2}-\d{2}$/.test(deadline) ||
-             Number.isNaN(Date.parse(deadline))))
+            (
+                typeof deadline !== "string" ||
+                !/^\d{4}-\d{2}-\d{2}$/.test(deadline) ||
+                Number.isNaN(Date.parse(deadline))
+            )
+        )
     ) {
         return res.status(400).json({
             success: false,
@@ -258,7 +268,6 @@ router.post("/:id/apply", requireLogin, async (req, res) => {
     }
 
     try {
-        // Verify that the student's account is still approved.
         const [users] = await db.execute(
             `SELECT account_status
              FROM Users
@@ -275,7 +284,6 @@ router.post("/:id/apply", requireLogin, async (req, res) => {
             });
         }
 
-        // Check that the scholarship exists and has not expired.
         const [scholarships] = await db.execute(
             `SELECT scholarship_id, deadline
              FROM Scholarships
@@ -295,11 +303,13 @@ router.post("/:id/apply", requireLogin, async (req, res) => {
         if (deadline) {
             const today = new Date();
             const deadlineDate = new Date(deadline);
+
             const todayUTC = Date.UTC(
                 today.getFullYear(),
                 today.getMonth(),
                 today.getDate()
             );
+
             const deadlineUTC = Date.UTC(
                 deadlineDate.getFullYear(),
                 deadlineDate.getMonth(),
@@ -314,8 +324,6 @@ router.post("/:id/apply", requireLogin, async (req, res) => {
             }
         }
 
-        // Insert the application. The database unique constraint
-        // prevents the same student applying twice.
         const [result] = await db.execute(
             `INSERT INTO Applications
                 (student_id, scholarship_id, apply_date, status)
@@ -328,7 +336,6 @@ router.post("/:id/apply", requireLogin, async (req, res) => {
             message: "Scholarship application submitted successfully.",
             applicationId: result.insertId
         });
-
     } catch (error) {
         if (error.code === "ER_DUP_ENTRY") {
             return res.status(409).json({
@@ -345,7 +352,6 @@ router.post("/:id/apply", requireLogin, async (req, res) => {
         });
     }
 });
-
 
 /* Student: View my applications. */
 router.get("/my-applications", requireLogin, async (req, res) => {
@@ -395,9 +401,8 @@ router.get("/my-applications", requireLogin, async (req, res) => {
 
         return res.json({
             success: true,
-            applications: applications
+            applications
         });
-
     } catch (error) {
         console.error("Fetch applications error:", error.message);
 
@@ -412,99 +417,101 @@ router.get("/my-applications", requireLogin, async (req, res) => {
    ADMIN APPLICATION MANAGEMENT
 ================================ */
 
-// Get all scholarship applications
+// Get all scholarship applications.
 router.get("/admin/applications", requireAdmin, async (req, res) => {
-  try {
-    const [applications] = await db.query(`
-      SELECT
-        a.application_id,
-        a.apply_date,
-        a.status,
-        s.student_name,
-        s.institute,
-        u.email,
-        sc.scholarship_name,
-        sc.amount
-      FROM Applications a
-      JOIN Students s
-        ON a.student_id = s.student_id
-      JOIN Scholarships sc
-        ON a.scholarship_id = sc.scholarship_id
-      JOIN Users u
-        ON u.student_id = s.student_id
-      ORDER BY a.apply_date DESC, a.application_id DESC
-    `);
+    try {
+        const [applications] = await db.query(`
+            SELECT
+                a.application_id,
+                a.apply_date,
+                a.status,
+                s.student_name,
+                s.institute,
+                COALESCE(u.email, s.email) AS email,
+                sc.scholarship_name,
+                sc.amount
+            FROM Applications a
+            JOIN Students s
+                ON a.student_id = s.student_id
+            JOIN Scholarships sc
+                ON a.scholarship_id = sc.scholarship_id
+            LEFT JOIN Users u
+                ON u.student_id = s.student_id
+            ORDER BY a.apply_date DESC, a.application_id DESC
+        `);
 
-    res.json({
-      success: true,
-      applications
-    });
-  } catch (error) {
-    console.error("Fetch applications error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch applications."
-    });
-  }
+        res.json({
+            success: true,
+            applications
+        });
+    } catch (error) {
+        console.error("Fetch applications error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch applications."
+        });
+    }
 });
 
-// Approve or reject a scholarship application
+// Approve or reject a scholarship application.
 router.patch(
-  "/admin/applications/:id/status",
-  requireAdmin,
-  async (req, res) => {
-    try {
-      const applicationId = Number(req.params.id);
-      const { status } = req.body;
+    "/admin/applications/:id/status",
+    requireAdmin,
+    async (req, res) => {
+        try {
+            const applicationId = Number(req.params.id);
+            const { status } = req.body;
 
-      if (!Number.isInteger(applicationId) || applicationId <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid application ID."
-        });
-      }
+            if (!Number.isInteger(applicationId) || applicationId <= 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid application ID."
+                });
+            }
 
-      if (!["Approved", "Rejected"].includes(status)) {
-        return res.status(400).json({
-          success: false,
-          message: "Status must be Approved or Rejected."
-        });
-      }
+            if (!["Approved", "Rejected"].includes(status)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Status must be Approved or Rejected."
+                });
+            }
 
-      const [result] = await db.query(
-        `UPDATE Applications
-         SET status = ?
-         WHERE application_id = ?
-           AND status = 'Pending'`,
-        [status, applicationId]
-      );
+            const [result] = await db.query(
+                `UPDATE Applications
+                 SET status = ?
+                 WHERE application_id = ?
+                   AND status = 'Pending'`,
+                [status, applicationId]
+            );
 
-      if (result.affectedRows === 0) {
-        return res.status(409).json({
-          success: false,
-          message: "Application not found or already reviewed."
-        });
-      }
+            if (result.affectedRows === 0) {
+                return res.status(409).json({
+                    success: false,
+                    message: "Application not found or already reviewed."
+                });
+            }
 
-      res.json({
-        success: true,
-        message: `Application ${status.toLowerCase()} successfully.`
-      });
-    } catch (error) {
-      console.error("Update application status error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to update application status."
-      });
+            res.json({
+                success: true,
+                message: `Application ${status.toLowerCase()} successfully.`
+            });
+        } catch (error) {
+            console.error("Update application status error:", error);
+
+            res.status(500).json({
+                success: false,
+                message: "Failed to update application status."
+            });
+        }
     }
-  }
 );
 
 /* ================================
    DISBURSEMENT MANAGEMENT
 ================================ */
 
-// Get all disbursements (Admin only)
+// Get all disbursements (Admin only).
 router.get("/admin/disbursements", requireAdmin, async (req, res) => {
     try {
         const [disbursements] = await db.query(`
@@ -515,14 +522,14 @@ router.get("/admin/disbursements", requireAdmin, async (req, res) => {
                 d.amount,
                 d.status,
                 s.student_name,
-                u.email,
+                COALESCE(u.email, s.email) AS email,
                 sc.scholarship_name
             FROM Disbursements d
             JOIN Applications a
                 ON d.application_id = a.application_id
             JOIN Students s
                 ON a.student_id = s.student_id
-            JOIN Users u
+            LEFT JOIN Users u
                 ON u.student_id = s.student_id
             JOIN Scholarships sc
                 ON a.scholarship_id = sc.scholarship_id
@@ -535,6 +542,7 @@ router.get("/admin/disbursements", requireAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error("Fetch disbursements error:", error);
+
         res.status(500).json({
             success: false,
             message: "Failed to fetch disbursements."
@@ -542,12 +550,12 @@ router.get("/admin/disbursements", requireAdmin, async (req, res) => {
     }
 });
 
-// Create a disbursement for an approved application (Admin only)
+// Create a disbursement for an approved application (Admin only).
 router.post(
     "/admin/applications/:id/disbursement",
     requireAdmin,
     async (req, res) => {
-        const connection = await db.getConnection();
+        let connection;
 
         try {
             const applicationId = Number(req.params.id);
@@ -559,6 +567,7 @@ router.post(
                 });
             }
 
+            connection = await db.getConnection();
             await connection.beginTransaction();
 
             const [applications] = await connection.query(
@@ -573,6 +582,7 @@ router.post(
 
             if (applications.length === 0) {
                 await connection.rollback();
+
                 return res.status(404).json({
                     success: false,
                     message: "Application not found."
@@ -581,6 +591,7 @@ router.post(
 
             if (applications[0].status !== "Approved") {
                 await connection.rollback();
+
                 return res.status(400).json({
                     success: false,
                     message: "Only approved applications can be disbursed."
@@ -601,7 +612,9 @@ router.post(
                 message: "Pending disbursement created successfully."
             });
         } catch (error) {
-            await connection.rollback();
+            if (connection) {
+                await connection.rollback();
+            }
 
             if (error.code === "ER_DUP_ENTRY") {
                 return res.status(409).json({
@@ -611,17 +624,20 @@ router.post(
             }
 
             console.error("Create disbursement error:", error);
+
             res.status(500).json({
                 success: false,
                 message: "Failed to create disbursement."
             });
         } finally {
-            connection.release();
+            if (connection) {
+                connection.release();
+            }
         }
     }
 );
 
-// Update disbursement status (Admin only)
+// Update disbursement status (Admin only).
 router.patch(
     "/admin/disbursements/:id/status",
     requireAdmin,
@@ -667,7 +683,8 @@ router.patch(
                 message: "Disbursement status updated successfully."
             });
         } catch (error) {
-            console.error("Update disbursement error:", error);
+            console.error("Update disbursement status error:", error);
+
             res.status(500).json({
                 success: false,
                 message: "Failed to update disbursement."
