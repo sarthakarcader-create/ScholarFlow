@@ -1,0 +1,622 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarFlow | Student Dashboard</title>
+
+    <style>
+        :root {
+            --primary: #161358;
+            --background: #f8f9fc;
+            --text: #171a35;
+            --muted: #777e96;
+            --border: #e9ebf3;
+            --green: #159957;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Inter, -apple-system, BlinkMacSystemFont,
+                "Segoe UI", sans-serif;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        button { font: inherit; cursor: pointer; }
+
+        .topbar {
+            background: var(--primary);
+            color: white;
+            padding: 18px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand { font-size: 24px; font-weight: 800; }
+
+        .profile { font-size: 14px; }
+
+        .layout { display: flex; min-height: calc(100vh - 65px); }
+
+        .sidebar {
+            width: 225px;
+            flex-shrink: 0;
+            background: white;
+            border-right: 1px solid var(--border);
+            padding: 24px 14px;
+        }
+
+        .nav-link {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 13px 15px;
+            margin-bottom: 8px;
+            border: 0;
+            border-radius: 9px;
+            background: transparent;
+            color: #515873;
+            font-weight: 650;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .nav-link.active, .nav-link:hover {
+            background: #eeedff;
+            color: var(--primary);
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 32px;
+        }
+
+        .eyebrow {
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--muted);
+        }
+
+        h1 { font-size: 32px; margin: 10px 0; }
+
+        .subtitle { color: var(--muted); line-height: 1.6; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin: 26px 0;
+        }
+
+        .stat, .panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+        }
+
+        .stat-label { color: var(--muted); font-size: 13px; }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 800;
+            margin-top: 8px;
+        }
+
+        .panel { margin-bottom: 24px; scroll-margin-top: 20px; }
+
+        .panel-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        h2 { margin: 0; font-size: 21px; }
+
+        .search {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #dfe2ee;
+            border-radius: 9px;
+            margin-bottom: 18px;
+        }
+
+        .scholarship-list { display: grid; gap: 14px; }
+
+        .scholarship-card {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .scholarship-card h3 { margin: 0 0 10px; }
+
+        .meta {
+            color: #66708d;
+            font-size: 13px;
+            line-height: 1.7;
+            margin-top: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .amount {
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 19px;
+            margin-bottom: 8px;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 9px;
+            padding: 11px 16px;
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-soft { background: #eeedff; color: var(--primary); }
+        .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 750;
+            background: #fff3df;
+            color: #9b5700;
+        }
+
+        .status.approved { background: #dff6e9; color: #087c43; }
+        .status.rejected { background: #ffe5e7; color: #c12635; }
+
+        .empty {
+            text-align: center;
+            padding: 35px 18px;
+            border: 1px dashed #dfe2ee;
+            border-radius: 10px;
+            color: var(--muted);
+        }
+
+        .message { color: var(--muted); font-size: 14px; }
+
+        .toast {
+            position: fixed;
+            bottom: 22px;
+            right: 22px;
+            background: var(--primary);
+            color: white;
+            padding: 14px 18px;
+            border-radius: 10px;
+            max-width: calc(100vw - 44px);
+        }
+
+        [hidden] { display: none !important; }
+
+        @media (max-width: 800px) {
+            .layout { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                display: flex;
+                overflow-x: auto;
+                gap: 5px;
+                padding: 10px;
+            }
+            .nav-link { width: auto; white-space: nowrap; }
+            .main { padding: 20px 14px; }
+            .stats { gap: 9px; }
+            .stat { padding: 14px 10px; }
+            .stat-number { font-size: 23px; }
+        }
+
+        @media (max-width: 520px) {
+            .topbar { padding: 16px; }
+            .brand { font-size: 20px; }
+            .profile { font-size: 12px; }
+            h1 { font-size: 26px; }
+            .stats { grid-template-columns: 1fr; }
+            .scholarship-card {
+                align-items: stretch;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="brand">ScholarFlow <span style="font-size:12px">STUDENT</span></div>
+        <div class="profile">Welcome, <strong id="studentName">Student</strong></div>
+    </header>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <a class="nav-link active" href="#dashboard">⌂ Dashboard</a>
+            <a class="nav-link" href="#scholarships">▱ Browse Scholarships</a>
+            <a class="nav-link" href="#applications">▤ My Applications</a>
+            <button class="nav-link" id="logoutBtn" type="button">↪ Logout</button>
+        </aside>
+
+        <main class="main" id="dashboard">
+            <div class="eyebrow">Student Portal</div>
+            <h1 id="welcomeHeading">Welcome to ScholarFlow</h1>
+            <p class="subtitle">
+                Discover scholarship opportunities and track your applications.
+            </p>
+
+            <section class="stats">
+                <article class="stat">
+                    <div class="stat-label">Available Scholarships</div>
+                    <div class="stat-number" id="scholarshipCount">—</div>
+                </article>
+                <article class="stat">
+                    <div class="stat-label">My Applications</div>
+                    <div class="stat-number" id="applicationCount">—</div>
+                </article>
+                <article class="stat">
+                    <div class="stat-label">Awaiting Decision</div>
+                    <div class="stat-number" id="pendingCount">—</div>
+                </article>
+            </section>
+
+            <section class="panel" id="scholarships">
+                <div class="panel-heading">
+                    <div>
+                        <h2>Explore Scholarships</h2>
+                        <p class="subtitle">Find an opportunity that fits you.</p>
+                    </div>
+                </div>
+
+                <input
+                    class="search"
+                    type="search"
+                    id="scholarshipSearch"
+                    placeholder="Search by scholarship name or eligibility..."
+                >
+
+                <p class="message" id="scholarshipMessage">Loading scholarships...</p>
+                <div class="scholarship-list" id="scholarshipList"></div>
+            </section>
+
+            <section class="panel" id="applications">
+                <div class="panel-heading">
+                    <div>
+                        <h2>My Applications</h2>
+                        <p class="subtitle">Track the status of your submissions.</p>
+                    </div>
+                    <button class="btn btn-soft" id="refreshApplications" type="button">
+                        Refresh
+                    </button>
+                </div>
+
+                <p class="message" id="applicationMessage">Loading applications...</p>
+                <div class="scholarship-list" id="applicationList"></div>
+            </section>
+        </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" hidden></div>
+
+    <script>
+        const scholarshipList = document.getElementById("scholarshipList");
+        const scholarshipMessage = document.getElementById("scholarshipMessage");
+        const applicationList = document.getElementById("applicationList");
+        const applicationMessage = document.getElementById("applicationMessage");
+        const toast = document.getElementById("toast");
+
+        let scholarships = [];
+        let applications = [];
+        let toastTimer;
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.hidden = false;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function () {
+                toast.hidden = true;
+            }, 3500);
+        }
+
+        function element(tag, className, text) {
+            const node = document.createElement(tag);
+            node.className = className;
+            node.textContent = text;
+            return node;
+        }
+
+        function formatAmount(amount) {
+            return Number(amount).toLocaleString("en-IN", {
+                style: "currency",
+                currency: "INR",
+                maximumFractionDigits: 2
+            });
+        }
+
+        function formatDate(date) {
+            if (!date) return "Not specified";
+
+            const parts = String(date).slice(0, 10).split("-");
+            if (parts.length !== 3) return String(date);
+
+            return parts[2] + "/" + parts[1] + "/" + parts[0];
+        }
+
+        function hasApplied(id) {
+            return applications.some(function (application) {
+                return Number(application.scholarship_id) === Number(id);
+            });
+        }
+
+        function renderScholarships() {
+            const query = document.getElementById("scholarshipSearch")
+                .value.trim().toLowerCase();
+
+            scholarshipList.innerHTML = "";
+
+            const filtered = scholarships.filter(function (item) {
+                return String(item.scholarship_name).toLowerCase().includes(query) ||
+                    String(item.eligibility).toLowerCase().includes(query);
+            });
+
+            if (filtered.length === 0) {
+                scholarshipList.appendChild(element(
+                    "div",
+                    "empty",
+                    scholarships.length
+                        ? "No scholarships match your search."
+                        : "No scholarships are available right now."
+                ));
+                return;
+            }
+
+            filtered.forEach(function (item) {
+                const card = document.createElement("article");
+                card.className = "scholarship-card";
+
+                const info = document.createElement("div");
+                info.style.minWidth = "0";
+                info.appendChild(element("h3", "", item.scholarship_name));
+                info.appendChild(element(
+                    "div",
+                    "meta",
+                    "Eligibility: " + item.eligibility
+                ));
+                info.appendChild(element(
+                    "div",
+                    "meta",
+                    "Deadline: " + formatDate(item.deadline)
+                ));
+
+                const action = document.createElement("div");
+                action.style.flexShrink = "0";
+                action.appendChild(element(
+                    "div",
+                    "amount",
+                    formatAmount(item.amount)
+                ));
+
+                const applyButton = element(
+                    "button",
+                    "btn btn-primary",
+                    hasApplied(item.scholarship_id) ? "Already Applied" : "Apply Now"
+                );
+
+                applyButton.type = "button";
+                applyButton.disabled = hasApplied(item.scholarship_id);
+
+                applyButton.addEventListener("click", function () {
+                    applyForScholarship(item.scholarship_id, applyButton);
+                });
+
+                action.appendChild(applyButton);
+                card.appendChild(info);
+                card.appendChild(action);
+                scholarshipList.appendChild(card);
+            });
+        }
+
+        async function loadScholarships() {
+            scholarshipMessage.hidden = false;
+            scholarshipMessage.textContent = "Loading scholarships...";
+
+            try {
+                const response = await fetch("/api/scholarships");
+                const data = await response.json();
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = "/login.html";
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(data.message || "Could not load scholarships.");
+                }
+
+                scholarships = Array.isArray(data.scholarships)
+                    ? data.scholarships
+                    : [];
+
+                document.getElementById("scholarshipCount").textContent =
+                    scholarships.length;
+
+                scholarshipMessage.hidden = true;
+                renderScholarships();
+            } catch (error) {
+                scholarshipMessage.textContent =
+                    error.message || "Unable to load scholarships.";
+            }
+        }
+
+        async function loadApplications() {
+            applicationMessage.hidden = false;
+            applicationMessage.textContent = "Loading applications...";
+            applicationList.innerHTML = "";
+
+            try {
+                const response = await fetch("/api/scholarships/my-applications");
+                const data = await response.json();
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = "/login.html";
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(data.message || "Could not load applications.");
+                }
+
+                applications = Array.isArray(data.applications)
+                    ? data.applications
+                    : [];
+
+                document.getElementById("applicationCount").textContent =
+                    applications.length;
+
+                document.getElementById("pendingCount").textContent =
+                    applications.filter(function (item) {
+                        return item.status === "Pending";
+                    }).length;
+
+                applicationMessage.hidden = true;
+                renderApplications();
+                renderScholarships();
+            } catch (error) {
+                applicationMessage.textContent =
+                    error.message || "Unable to load applications.";
+            }
+        }
+
+        function renderApplications() {
+            applicationList.innerHTML = "";
+
+            if (applications.length === 0) {
+                applicationList.appendChild(element(
+                    "div",
+                    "empty",
+                    "You have not applied for any scholarships yet."
+                ));
+                return;
+            }
+
+            applications.forEach(function (item) {
+                const card = document.createElement("article");
+                card.className = "scholarship-card";
+
+                const info = document.createElement("div");
+                info.style.minWidth = "0";
+                info.appendChild(element("h3", "", item.scholarship_name));
+                info.appendChild(element(
+                    "div",
+                    "meta",
+                    "Applied on: " + formatDate(item.apply_date)
+                ));
+                info.appendChild(element(
+                    "div",
+                    "meta",
+                    "Award: " + formatAmount(item.amount)
+                ));
+
+                const statusBox = document.createElement("div");
+                statusBox.appendChild(element(
+                    "span",
+                    "status " + String(item.status).toLowerCase(),
+                    item.status
+                ));
+
+                card.appendChild(info);
+                card.appendChild(statusBox);
+                applicationList.appendChild(card);
+            });
+        }
+
+        async function applyForScholarship(id, button) {
+            if (!window.confirm("Apply for this scholarship?")) return;
+
+            button.disabled = true;
+
+            try {
+                const response = await fetch(
+                    "/api/scholarships/" + id + "/apply",
+                    { method: "POST" }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showToast(data.message || "Application could not be submitted.");
+                    button.disabled = false;
+                    return;
+                }
+
+                showToast(data.message || "Application submitted successfully.");
+                await loadApplications();
+            } catch (error) {
+                showToast("Unable to connect to the server.");
+                button.disabled = false;
+            }
+        }
+
+        document.getElementById("scholarshipSearch")
+            .addEventListener("input", renderScholarships);
+
+        document.getElementById("refreshApplications")
+            .addEventListener("click", loadApplications);
+
+        document.getElementById("logoutBtn")
+            .addEventListener("click", async function () {
+                try {
+                    await fetch("/api/auth/logout", { method: "POST" });
+                } finally {
+                    window.location.href = "/login.html";
+                }
+            });
+
+        async function initializeDashboard() {
+            try {
+                const response = await fetch("/api/auth/me");
+
+                if (!response.ok) {
+                    window.location.href = "/login.html";
+                    return;
+                }
+
+                const data = await response.json();
+                const user = data.user;
+
+                if (!user || user.role !== "student") {
+                    window.location.href = "/login.html";
+                    return;
+                }
+
+                document.getElementById("studentName").textContent = user.name;
+                document.getElementById("welcomeHeading").textContent =
+                    "Welcome, " + user.name.split(" ")[0];
+
+                await loadApplications();
+                await loadScholarships();
+            } catch (error) {
+                window.location.href = "/login.html";
+            }
+        }
+
+        initializeDashboard();
+    </script>
+</body>
+</html>

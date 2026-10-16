@@ -1,0 +1,1191 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScholarFlow | Admin Dashboard</title>
+
+<style>
+:root {
+    --primary: #161358;
+    --primary-light: #eeedff;
+    --background: #f8f9fc;
+    --surface: #ffffff;
+    --text: #171a35;
+    --muted: #777e96;
+    --border: #e9ebf3;
+    --green: #159957;
+    --red: #dc3545;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--background);
+    color: var(--text);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button, input, textarea { font: inherit; }
+button { cursor: pointer; }
+
+.topbar {
+    min-height: 76px;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.admin-tag {
+    font-size: 12px;
+    background: #ffffff20;
+    padding: 7px 13px;
+    border-radius: 20px;
+}
+
+.admin-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+}
+
+.profile-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    color: var(--primary);
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+}
+
+.layout {
+    display: flex;
+    min-height: calc(100vh - 76px);
+}
+
+.sidebar {
+    width: 230px;
+    flex-shrink: 0;
+    background: white;
+    border-right: 1px solid var(--border);
+    padding: 25px 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-link {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #515873;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 7px;
+    border: 0;
+    background: transparent;
+    text-align: left;
+}
+
+.nav-link.active, .nav-link:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.nav-icon {
+    width: 22px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.logout-link {
+    margin-top: auto;
+    color: var(--primary);
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+    padding: 32px;
+}
+
+.eyebrow {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+h1 {
+    font-size: clamp(25px, 3vw, 34px);
+    margin: 10px 0;
+}
+
+.subtitle {
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.6;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin: 28px 0;
+}
+
+.stat-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    box-shadow: 0 3px 12px #171a3505;
+}
+
+.stat-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+}
+
+.icon-blue { background: #eaf1ff; color: #2463eb; }
+.icon-orange { background: #fff3df; color: #bd7200; }
+.icon-green { background: #e5f8ee; color: #159957; }
+.icon-purple { background: #f0eaff; color: #6741d9; }
+
+.stat-label {
+    color: #616984;
+    font-size: 13px;
+}
+
+.stat-number {
+    font-size: 27px;
+    font-weight: 800;
+    margin-top: 6px;
+}
+
+.panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 3px 12px #171a3505;
+    scroll-margin-top: 95px;
+}
+
+.panel-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.panel-heading h2 {
+    font-size: 21px;
+    margin: 0 0 8px;
+}
+
+.panel-heading p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.pill {
+    white-space: nowrap;
+    background: #fff1d9;
+    color: #9b5700;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 9px 13px;
+    border-radius: 20px;
+}
+
+.muted-message {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.student-list, .scholarship-list {
+    display: grid;
+    gap: 14px;
+}
+
+.student-card, .scholarship-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 19px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.student-card:hover, .scholarship-card:hover {
+    border-color: #d4d2f4;
+    box-shadow: 0 5px 18px #1613580a;
+}
+
+.student-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.avatar {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+}
+
+.student-name, .scholarship-name {
+    font-size: 15px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.student-email, .student-institute, .scholarship-meta {
+    color: #66708d;
+    font-size: 13px;
+    margin-top: 6px;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+}
+
+.student-actions, .scholarship-actions {
+    display: flex;
+    gap: 9px;
+    flex-shrink: 0;
+}
+
+.btn {
+    border: 0;
+    border-radius: 9px;
+    padding: 11px 15px;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.btn:hover { opacity: .85; }
+.btn:disabled { opacity: .55; cursor: wait; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-soft { background: #eeedff; color: var(--primary); }
+.btn-approve { background: #dff6e9; color: #087c43; }
+.btn-reject, .btn-delete { background: #ffe5e7; color: #c12635; }
+
+.empty-state {
+    text-align: center;
+    padding: 38px 20px;
+    color: var(--muted);
+    border: 1px dashed #dfe2ee;
+    border-radius: 12px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.field.full { grid-column: 1 / -1; }
+
+.field label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #414864;
+}
+
+.field input, .field textarea {
+    width: 100%;
+    border: 1px solid #dfe2ee;
+    border-radius: 9px;
+    background: white;
+    padding: 12px 13px;
+    outline: none;
+    color: var(--text);
+}
+
+.field input:focus, .field textarea:focus {
+    border-color: #817be5;
+    box-shadow: 0 0 0 3px #16135812;
+}
+
+.field textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 17px;
+}
+
+.toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    max-width: calc(100vw - 40px);
+    background: var(--primary);
+    color: white;
+    padding: 14px 20px;
+    border-radius: 10px;
+    z-index: 30;
+    font-size: 14px;
+}
+
+[hidden] { display: none !important; }
+
+@media (max-width: 1100px) {
+    .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sidebar { width: 200px; }
+    .main-content { padding: 24px; }
+}
+
+@media (max-width: 720px) {
+    .topbar { min-height: 66px; padding: 0 16px; }
+    .brand { font-size: 21px; }
+    .admin-tag, .profile-details { display: none; }
+    .layout { flex-direction: column; }
+    .sidebar {
+        width: 100%;
+        padding: 10px;
+        flex-direction: row;
+        overflow-x: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+    }
+    .nav-link { width: auto; white-space: nowrap; padding: 11px; margin: 0; }
+    .logout-link { margin-top: 0; }
+    .main-content { padding: 20px 14px; }
+    .stats-grid { gap: 10px; }
+    .stat-card { padding: 13px 10px; gap: 8px; }
+    .stat-icon { width: 34px; height: 34px; font-size: 16px; }
+    .stat-label { font-size: 11px; }
+    .stat-number { font-size: 22px; }
+    .panel { padding: 17px 13px; }
+    .panel-heading h2 { font-size: 18px; }
+    .student-card, .scholarship-card { flex-direction: column; align-items: stretch; padding: 15px; }
+    .student-actions, .scholarship-actions { width: 100%; }
+    .student-actions .btn, .scholarship-actions .btn { flex: 1; }
+    .form-grid { grid-template-columns: 1fr; }
+    .field.full { grid-column: auto; }
+}
+</style>
+</head>
+
+<body>
+<header class="topbar">
+    <div class="brand">ScholarFlow <span class="admin-tag">Admin</span></div>
+    <div class="admin-profile">
+        <div class="profile-icon">A</div>
+        <div class="profile-details"><strong>Admin</strong><br><span style="opacity:.75;font-size:12px">Administrator</span></div>
+    </div>
+</header>
+
+<div class="layout">
+    <aside class="sidebar">
+        <a class="nav-link active" href="#dashboard"><span class="nav-icon">⌂</span>Dashboard</a>
+        <a class="nav-link" href="#students"><span class="nav-icon">♙</span>Students</a>
+        <a class="nav-link" href="#scholarships"><span class="nav-icon">▱</span>Scholarships</a>
+        <a class="nav-link" href="#applications"><span class="nav-icon">▤</span>Applications</a>
+        <a class="nav-link" href="#disbursements">
+    <span class="nav-icon">₹</span>Disbursements
+</a>
+        <button class="nav-link logout-link" id="logoutBtn" type="button"><span class="nav-icon">↪</span>Logout</button>
+    </aside>
+
+    <main class="main-content" id="dashboard">
+        <div class="eyebrow">Admin Dashboard</div>
+        <h1>Welcome to ScholarFlow</h1>
+        <p class="subtitle">Manage student registrations and scholarship opportunities.</p>
+
+        <section class="stats-grid">
+            <article class="stat-card"><div class="stat-icon icon-blue">♙</div><div><div class="stat-label">Total Students</div><div class="stat-number" id="totalStudents">—</div></div></article>
+            <article class="stat-card"><div class="stat-icon icon-orange">⌛</div><div><div class="stat-label">Pending Approvals</div><div class="stat-number" id="pendingApprovals">—</div></div></article>
+            <article class="stat-card"><div class="stat-icon icon-green">◇</div><div><div class="stat-label">Scholarships</div><div class="stat-number" id="totalScholarships">—</div></div></article>
+            <article class="stat-card"><div class="stat-icon icon-purple">▤</div><div><div class="stat-label">Applications</div><div class="stat-number" id="totalApplications">—</div></div></article>
+        </section>
+
+        <section class="panel" id="students">
+            <div class="panel-heading"><div><h2>Pending Student Registrations</h2><p>Review and approve new student registrations.</p></div><span class="pill" id="pendingBadge">Loading</span></div>
+            <p class="muted-message" id="studentMessage" role="status" aria-live="polite">Loading registrations...</p>
+            <div class="student-list" id="pendingStudents"></div>
+        </section>
+
+        <section class="panel" id="scholarships">
+            <div class="panel-heading"><div><h2>Scholarship Management</h2><p>Create, update and manage scholarship opportunities.</p></div><span class="pill" id="scholarshipBadge">0 scholarships</span></div>
+
+            <form id="scholarshipForm">
+                <input type="hidden" id="scholarshipId">
+                <div class="form-grid">
+                    <div class="field full"><label for="scholarshipName">Scholarship name</label><input id="scholarshipName" maxlength="150" required placeholder="Merit Excellence Scholarship"></div>
+                    <div class="field full"><label for="eligibility">Eligibility criteria</label><textarea id="eligibility" required placeholder="Describe academic, income or other eligibility requirements"></textarea></div>
+                    <div class="field"><label for="amount">Award amount (₹)</label><input id="amount" type="number" min="0.01" step="0.01" required placeholder="25000"></div>
+                    <div class="field"><label for="deadline">Application deadline</label><input id="deadline" type="date"></div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" id="saveScholarshipBtn" type="submit">Add Scholarship</button>
+                    <button class="btn btn-soft" id="cancelEditBtn" type="button" hidden>Cancel edit</button>
+                    <span class="muted-message" id="scholarshipFormMessage" role="status"></span>
+                </div>
+            </form>
+
+            <hr style="border:0;border-top:1px solid var(--border);margin:26px 0">
+            <div class="panel-heading"><div><h2>Available Scholarships</h2><p>Scholarships stored in the database.</p></div></div>
+            <div class="field" style="margin-bottom:16px"><label for="scholarshipSearch">Search scholarships</label><input id="scholarshipSearch" type="search" placeholder="Search by name or eligibility..."></div>
+            <p class="muted-message" id="scholarshipMessage" role="status" aria-live="polite">Loading scholarships...</p>
+            <div class="scholarship-list" id="scholarshipList"></div>
+        </section>
+
+        <section class="panel" id="applications">
+    <div class="panel-heading">
+        <div>
+            <h2>Applications</h2>
+            <p>Review and manage scholarship applications.</p>
+        </div>
+    </div>
+
+    <div class="form-grid" style="margin-bottom: 20px;">
+        <div class="field">
+            <label for="applicationSearch">Search applications</label>
+            <input
+                type="search"
+                id="applicationSearch"
+                placeholder="Student name, email or scholarship"
+            >
+        </div>
+
+        <div class="field">
+            <label for="applicationStatusFilter">Filter by status</label>
+            <select id="applicationStatusFilter">
+                <option value="All">All Applications</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+            </select>
+        </div>
+    </div>
+
+    <p class="muted-message" id="applicationMessage">
+        Loading applications...
+    </p>
+
+    <div class="student-list" id="applicationsList"></div>
+</section>
+
+<section class="panel" id="disbursements">
+    <div class="panel-heading">
+        <div>
+            <h2>Disbursement Management</h2>
+            <p>Manage scholarship payment records and their status.</p>
+        </div>
+        <button class="btn btn-primary" type="button" onclick="loadDisbursements()">
+            Refresh
+        </button>
+    </div>
+
+    <p class="muted-message" id="disbursementMessage">
+        Loading disbursements...
+    </p>
+
+    <div class="student-list" id="disbursementList"></div>
+</section>
+
+        <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    </main>
+</div>
+
+<script>
+const studentMessage = document.getElementById("studentMessage");
+const pendingStudents = document.getElementById("pendingStudents");
+const scholarshipMessage = document.getElementById("scholarshipMessage");
+const scholarshipList = document.getElementById("scholarshipList");
+const scholarshipForm = document.getElementById("scholarshipForm");
+const toast = document.getElementById("toast");
+let allScholarships = [];
+let toastTimer;
+
+function showToast(message) {
+    toast.textContent = message;
+    toast.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { toast.hidden = true; }, 3200);
+}
+
+function makeElement(tag, className, text) {
+    const element = document.createElement(tag);
+    element.className = className;
+    element.textContent = text;
+    return element;
+}
+
+function getInitials(name) {
+    return String(name || "Student").trim().split(/\s+/).slice(0, 2).map(function(part) {
+        return part.charAt(0).toUpperCase();
+    }).join("");
+}
+
+async function loadPendingStudents() {
+    studentMessage.hidden = false;
+    studentMessage.textContent = "Loading registrations...";
+    pendingStudents.innerHTML = "";
+
+    try {
+        const response = await fetch("/api/auth/admin/pending");
+        const data = await response.json();
+
+        if (!response.ok) {
+            studentMessage.textContent = data.message || "Could not load registrations.";
+            document.getElementById("pendingBadge").textContent = "Unavailable";
+            return;
+        }
+
+        const users = Array.isArray(data.users) ? data.users : [];
+        document.getElementById("pendingApprovals").textContent = users.length;
+        document.getElementById("pendingBadge").textContent = users.length + " pending";
+        studentMessage.hidden = true;
+
+        if (users.length === 0) {
+            pendingStudents.appendChild(makeElement("div", "empty-state", "✓ All caught up! No pending registrations."));
+            return;
+        }
+
+        users.forEach(function(user) {
+            const card = document.createElement("article");
+            card.className = "student-card";
+
+            const info = document.createElement("div");
+            info.className = "student-info";
+            info.appendChild(makeElement("div", "avatar", getInitials(user.name)));
+
+            const details = document.createElement("div");
+            details.appendChild(makeElement("div", "student-name", user.name || "Unnamed student"));
+            details.appendChild(makeElement("div", "student-email", user.email || "No email provided"));
+            details.appendChild(makeElement("div", "student-institute", "⌂ " + (user.institute || "Institute not provided")));
+            info.appendChild(details);
+
+            const actions = document.createElement("div");
+            actions.className = "student-actions";
+
+            const approve = makeElement("button", "btn btn-approve", "✓ Approve");
+            const reject = makeElement("button", "btn btn-reject", "✕ Reject");
+            approve.type = "button";
+            reject.type = "button";
+
+            approve.addEventListener("click", function() {
+                updateStatus(user.user_id, "approved", approve, reject);
+            });
+            reject.addEventListener("click", function() {
+                updateStatus(user.user_id, "rejected", approve, reject);
+            });
+
+            actions.appendChild(approve);
+            actions.appendChild(reject);
+            card.appendChild(info);
+            card.appendChild(actions);
+            pendingStudents.appendChild(card);
+        });
+    } catch (error) {
+        studentMessage.hidden = false;
+        studentMessage.textContent = "Unable to connect to the server. Please refresh.";
+    }
+}
+
+async function updateStatus(userId, status, approve, reject) {
+    if (!window.confirm("Are you sure you want to " + status + " this registration?")) return;
+
+    approve.disabled = true;
+    reject.disabled = true;
+
+    try {
+        const response = await fetch("/api/auth/admin/users/" + userId + "/status", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: status })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            showToast(data.message || "Could not update registration.");
+            approve.disabled = false;
+            reject.disabled = false;
+            return;
+        }
+
+        showToast("Student registration " + status + " successfully.");
+        await loadPendingStudents();
+    } catch (error) {
+        showToast("Unable to connect to the server.");
+        approve.disabled = false;
+        reject.disabled = false;
+    }
+}
+
+function formatAmount(amount) {
+    return Number(amount).toLocaleString("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 2
+    });
+}
+
+function renderScholarships() {
+    const search = document.getElementById("scholarshipSearch").value.trim().toLowerCase();
+    scholarshipList.innerHTML = "";
+
+    const filtered = allScholarships.filter(function(item) {
+        return String(item.scholarship_name).toLowerCase().includes(search) ||
+            String(item.eligibility).toLowerCase().includes(search);
+    });
+
+    if (filtered.length === 0) {
+        scholarshipList.appendChild(makeElement(
+            "div",
+            "empty-state",
+            allScholarships.length ? "No scholarships match your search." : "No scholarships yet. Add your first scholarship above."
+        ));
+        return;
+    }
+
+    filtered.forEach(function(item) {
+        const card = document.createElement("article");
+        card.className = "scholarship-card";
+
+        const info = document.createElement("div");
+        info.style.minWidth = "0";
+        info.appendChild(makeElement("div", "scholarship-name", item.scholarship_name));
+        info.appendChild(makeElement("div", "scholarship-meta", formatAmount(item.amount) + " award"));
+        info.appendChild(makeElement("div", "scholarship-meta", "Eligibility: " + item.eligibility));
+        info.appendChild(makeElement("div", "scholarship-meta", "Deadline: " + (item.deadline ? String(item.deadline).slice(0, 10) : "Not specified")));
+
+        const actions = document.createElement("div");
+        actions.className = "scholarship-actions";
+
+        const edit = makeElement("button", "btn btn-soft", "Edit");
+        const remove = makeElement("button", "btn btn-delete", "Delete");
+        edit.type = "button";
+        remove.type = "button";
+
+        edit.addEventListener("click", function() { beginEdit(item); });
+        remove.addEventListener("click", function() { deleteScholarship(item.scholarship_id, remove); });
+
+        actions.appendChild(edit);
+        actions.appendChild(remove);
+        card.appendChild(info);
+        card.appendChild(actions);
+        scholarshipList.appendChild(card);
+    });
+}
+
+async function loadScholarships() {
+    scholarshipMessage.hidden = false;
+    scholarshipMessage.textContent = "Loading scholarships...";
+    scholarshipList.innerHTML = "";
+
+    try {
+        const response = await fetch("/api/scholarships");
+        const data = await response.json();
+
+        if (!response.ok) {
+            scholarshipMessage.textContent = data.message || "Could not load scholarships.";
+            return;
+        }
+
+        allScholarships = Array.isArray(data.scholarships) ? data.scholarships : [];
+        document.getElementById("totalScholarships").textContent = allScholarships.length;
+        document.getElementById("scholarshipBadge").textContent =
+            allScholarships.length + (allScholarships.length === 1 ? " scholarship" : " scholarships");
+
+        scholarshipMessage.hidden = true;
+        renderScholarships();
+    } catch (error) {
+        scholarshipMessage.textContent = "Unable to connect to the server.";
+    }
+}
+
+function resetScholarshipForm() {
+    scholarshipForm.reset();
+    document.getElementById("scholarshipId").value = "";
+    document.getElementById("saveScholarshipBtn").textContent = "Add Scholarship";
+    document.getElementById("cancelEditBtn").hidden = true;
+    document.getElementById("scholarshipFormMessage").textContent = "";
+}
+
+function beginEdit(item) {
+    document.getElementById("scholarshipId").value = item.scholarship_id;
+    document.getElementById("scholarshipName").value = item.scholarship_name;
+    document.getElementById("eligibility").value = item.eligibility;
+    document.getElementById("amount").value = item.amount;
+    document.getElementById("deadline").value = item.deadline ? String(item.deadline).slice(0, 10) : "";
+    document.getElementById("saveScholarshipBtn").textContent = "Save Changes";
+    document.getElementById("cancelEditBtn").hidden = false;
+    document.getElementById("scholarshipFormMessage").textContent = "Editing scholarship #" + item.scholarship_id;
+    document.getElementById("scholarshipName").focus();
+    document.getElementById("scholarships").scrollIntoView({ behavior: "smooth" });
+}
+
+scholarshipForm.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const id = document.getElementById("scholarshipId").value;
+    const payload = {
+        scholarship_name: document.getElementById("scholarshipName").value.trim(),
+        eligibility: document.getElementById("eligibility").value.trim(),
+        amount: document.getElementById("amount").value,
+        deadline: document.getElementById("deadline").value || null
+    };
+
+    const saveButton = document.getElementById("saveScholarshipBtn");
+    saveButton.disabled = true;
+
+    try {
+        const response = await fetch(id ? "/api/scholarships/" + id : "/api/scholarships", {
+            method: id ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            document.getElementById("scholarshipFormMessage").textContent =
+                data.message || "Could not save scholarship.";
+            return;
+        }
+
+        resetScholarshipForm();
+        showToast(data.message || "Scholarship saved successfully.");
+        await loadScholarships();
+    } catch (error) {
+        document.getElementById("scholarshipFormMessage").textContent = "Unable to connect to the server.";
+    } finally {
+        saveButton.disabled = false;
+    }
+});
+
+async function deleteScholarship(id, button) {
+    if (!window.confirm("Delete this scholarship? This cannot be undone.")) return;
+    button.disabled = true;
+
+    try {
+        const response = await fetch("/api/scholarships/" + id, { method: "DELETE" });
+        const data = await response.json();
+
+        if (!response.ok) {
+            showToast(data.message || "Could not delete scholarship.");
+            button.disabled = false;
+            return;
+        }
+
+        if (document.getElementById("scholarshipId").value === String(id)) {
+            resetScholarshipForm();
+        }
+
+        showToast(data.message || "Scholarship deleted.");
+        await loadScholarships();
+    } catch (error) {
+        showToast("Unable to connect to the server.");
+        button.disabled = false;
+    }
+}
+
+document.getElementById("scholarshipSearch").addEventListener("input", renderScholarships);
+document.getElementById("cancelEditBtn").addEventListener("click", resetScholarshipForm);
+
+document.getElementById("logoutBtn").addEventListener("click", async function() {
+    try {
+        await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+        window.location.href = "/login.html";
+    }
+});
+
+
+let allApplications = [];
+
+async function loadApplications() {
+    const container = document.getElementById("applicationsList");
+    const message = document.getElementById("applicationMessage");
+
+    try {
+        message.textContent = "Loading applications...";
+
+        const response = await fetch("/api/scholarships/admin/applications");
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Could not load applications.");
+        }
+
+        allApplications = data.applications;
+        filterApplications();
+
+    } catch (error) {
+        message.textContent = error.message;
+    }
+}
+
+function filterApplications() {
+    const search = document.getElementById("applicationSearch").value
+        .trim().toLowerCase();
+
+    const status = document.getElementById("applicationStatusFilter").value;
+    const container = document.getElementById("applicationsList");
+    const message = document.getElementById("applicationMessage");
+
+    container.innerHTML = "";
+
+    const filtered = allApplications.filter(function(app) {
+        const matchesSearch =
+            String(app.student_name || "").toLowerCase().includes(search) ||
+            String(app.email || "").toLowerCase().includes(search) ||
+            String(app.scholarship_name || "").toLowerCase().includes(search);
+
+        const matchesStatus = status === "All" || app.status === status;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    if (filtered.length === 0) {
+        message.textContent = "No applications found.";
+        return;
+    }
+
+    message.textContent = filtered.length + " application(s) found.";
+
+    filtered.forEach(function(app) {
+        const card = document.createElement("article");
+        card.className = "student-card";
+
+        const info = document.createElement("div");
+        info.className = "student-info";
+
+        const details = document.createElement("div");
+
+        details.appendChild(makeElement(
+            "div", "student-name", app.student_name
+        ));
+        details.appendChild(makeElement(
+            "div", "student-email", app.email
+        ));
+        details.appendChild(makeElement(
+            "div", "student-institute", app.institute || "Institute not provided"
+        ));
+        details.appendChild(makeElement(
+            "div", "scholarship-name", app.scholarship_name
+        ));
+        details.appendChild(makeElement(
+            "div", "scholarship-meta",
+            formatAmount(app.amount) + " | Status: " + app.status
+        ));
+
+        info.appendChild(details);
+        card.appendChild(info);
+
+        if (app.status === "Pending") {
+            const actions = document.createElement("div");
+            actions.className = "student-actions";
+
+            const approve = makeElement("button", "btn btn-approve", "Approve");
+            const reject = makeElement("button", "btn btn-reject", "Reject");
+
+            approve.type = "button";
+            reject.type = "button";
+
+            approve.addEventListener("click", function() {
+                updateApplicationStatus(app.application_id, "Approved");
+            });
+
+            reject.addEventListener("click", function() {
+                updateApplicationStatus(app.application_id, "Rejected");
+            });
+
+            actions.appendChild(approve);
+            actions.appendChild(reject);
+            card.appendChild(actions);
+        }
+
+if (app.status === "Approved") {
+    const actions = document.createElement("div");
+    actions.className = "student-actions";
+
+    const createButton = makeElement(
+        "button",
+        "btn btn-primary",
+        "Create Disbursement"
+    );
+
+    createButton.type = "button";
+
+    createButton.addEventListener("click", async function () {
+        const confirmed = window.confirm(
+            "Create a disbursement record for " +
+            app.scholarship_name +
+            "?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        createButton.disabled = true;
+        createButton.textContent = "Creating...";
+
+        try {
+            const response = await fetch(
+                "/api/scholarships/admin/applications/" +
+                app.application_id +
+                "/disbursement",
+                {
+                    method: "POST"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.message || "Could not create disbursement."
+                );
+            }
+
+            showToast(
+                data.message || "Disbursement created successfully."
+            );
+
+            await loadDisbursements();
+
+        } catch (error) {
+            showToast(error.message);
+
+        } finally {
+            createButton.disabled = false;
+            createButton.textContent = "Create Disbursement";
+        }
+    });
+
+    actions.appendChild(createButton);
+    card.appendChild(actions);
+}
+
+        container.appendChild(card);
+    });
+}
+
+async function updateApplicationStatus(applicationId, status) {
+    if (!window.confirm("Are you sure you want to " + status.toLowerCase() + " this application?")) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            "/api/scholarships/admin/applications/" + applicationId + "/status",
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ status: status })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Could not update application.");
+        }
+
+        showToast(data.message);
+        await loadApplications();
+        await loadBasicStats();
+
+    } catch (error) {
+        showToast(error.message);
+    }
+}
+
+document.getElementById("applicationSearch").addEventListener(
+    "input", filterApplications
+);
+
+document.getElementById("applicationStatusFilter").addEventListener(
+    "change", filterApplications
+);
+
+
+async function loadDisbursements() {
+    const container = document.getElementById("disbursementList");
+    const message = document.getElementById("disbursementMessage");
+
+    container.innerHTML = "";
+    message.textContent = "Loading disbursements...";
+
+    try {
+        const response = await fetch("/api/scholarships/admin/disbursements");
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Could not load disbursements.");
+        }
+
+        if (data.disbursements.length === 0) {
+            message.textContent = "No disbursement records yet.";
+            return;
+        }
+
+        message.textContent = data.disbursements.length + " record(s) found.";
+
+        data.disbursements.forEach(function(item) {
+            const card = document.createElement("article");
+            card.className = "student-card";
+
+            const info = document.createElement("div");
+            info.className = "student-info";
+
+            const details = document.createElement("div");
+            details.appendChild(makeElement("div", "student-name", item.student_name));
+            details.appendChild(makeElement("div", "student-email", item.email));
+            details.appendChild(makeElement("div", "scholarship-name", item.scholarship_name));
+            details.appendChild(makeElement("div", "scholarship-meta", "Amount: " + formatAmount(item.amount)));
+            details.appendChild(makeElement("div", "scholarship-meta", "Status: " + item.status));
+            details.appendChild(makeElement("div", "scholarship-meta", "Payment date: " + (item.payment_date || "Not paid")));
+
+            info.appendChild(details);
+            card.appendChild(info);
+
+            const statusSelect = document.createElement("select");
+            statusSelect.setAttribute("aria-label", "Payment status");
+
+            ["Pending", "Paid", "Failed"].forEach(function(status) {
+                const option = document.createElement("option");
+                option.value = status;
+                option.textContent = status;
+                statusSelect.appendChild(option);
+            });
+
+            statusSelect.value = item.status;
+
+            const updateButton = makeElement("button", "btn btn-primary", "Update Status");
+            updateButton.type = "button";
+
+            updateButton.addEventListener("click", async function() {
+                updateButton.disabled = true;
+
+                try {
+                    const updateResponse = await fetch(
+                        "/api/scholarships/admin/disbursements/" + item.disbursement_id + "/status",
+                        {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ status: statusSelect.value })
+                        }
+                    );
+
+                    const result = await updateResponse.json();
+
+                    if (!updateResponse.ok || !result.success) {
+                        throw new Error(result.message || "Update failed.");
+                    }
+
+                    showToast(result.message);
+                    await loadDisbursements();
+                } catch (error) {
+                    showToast(error.message);
+                } finally {
+                    updateButton.disabled = false;
+                }
+            });
+
+            const actions = document.createElement("div");
+            actions.className = "student-actions";
+            actions.appendChild(statusSelect);
+            actions.appendChild(updateButton);
+            card.appendChild(actions);
+
+            container.appendChild(card);
+        });
+    } catch (error) {
+        message.textContent = error.message;
+    }
+}
+
+async function loadBasicStats() {
+    try {
+        const response = await fetch("/api/admin/stats");
+
+        if (!response.ok) {
+            console.error("Could not load dashboard statistics.");
+            return;
+        }
+
+        const data = await response.json();
+
+        document.getElementById("totalStudents").textContent =
+            data.totalStudents;
+
+        document.getElementById("totalApplications").textContent =
+            data.totalApplications;
+
+    } catch (error) {
+        console.error("Could not load dashboard statistics:", error);
+    }
+}
+
+
+
+loadPendingStudents();
+loadScholarships();
+loadApplications();
+loadBasicStats();
+loadDisbursements();
+</script>
+</body>
+</html>
